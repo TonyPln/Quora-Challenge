@@ -7,9 +7,7 @@ from sklearn.cross_validation import train_test_split
 
 #%%
 estimators_range = (5,)
-
 np.random.seed(0)
-
 
 #%%
 class BasePreprocessor:
@@ -25,11 +23,12 @@ class BasePreprocessor:
     features, targets = zip(*processed_dataset)
     if not is_training:
       return np.array(features)
-    return self.split_dataset(np.array(features), np.array(targets), test_ratio=0.2)
+    return self.split_dataset(np.array(features), np.array(targets))
     
-  def split_dataset(self, features, targets, test_ratio):
-    training_features, testing_features, training_targets, testing_targets = train_test_split(features, targets, test_size=test_ratio)
-    return train_test_split(training_features, training_targets, test_size=test_ratio), testing_features, testing_targets
+  def split_dataset(self, features, targets):
+    training_features, testing_features, training_targets, testing_targets = train_test_split(features, targets, test_size=0.2)
+    validation_features, testing_features, validation_targets, testing_targets = train_test_split(testing_features, testing_targets, test_size=0.5)
+    return training_features, validation_features, testing_features, training_targets, validation_targets, testing_targets
   
   def transform_samples(self, dataset, is_training):
     transformed_samples = dataset.apply(
