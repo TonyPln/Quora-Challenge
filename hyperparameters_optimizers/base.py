@@ -18,7 +18,7 @@ class BaseHyperOptimizer:
     current_testing_features = features[current_testing_indices]
     current_testing_targets = targets[current_testing_indices]
 
-    classifier = self.classifier_class(parameters)
+    classifier = self.classifier_class(**parameters)
 
     classifier.fit(current_training_features, current_training_targets)
     testing_classification_rate = log_loss(current_testing_targets,classifier.predict(current_testing_features))
@@ -36,7 +36,7 @@ class BaseHyperOptimizer:
       y=targets
     )
     classification_rates = [
-        self.evaluate_parameters_on_fold(parameters, fold, features, targets)
+        self.evaluate_parameters_on_fold(fold, features, targets, parameters)
         for fold in fold_indices
     ]
     training_classification_rates, testing_classification_rates = list(zip(*classification_rates))

@@ -7,7 +7,8 @@ preprocessor = NaiveWord2VecPreprocessor(dir)
 dataset = preprocessor.load_dataset(is_training=True)
 training_features, validation_features, testing_features, training_targets, validation_targets, testing_targets = dataset
 
+
 #%%
 grid_search = GridSearch(RandomForest)
-parameters_grid = [{'n_estimators': 5}]
-grid_search.optimize()
+parameters_grid = [{'n_estimators': 5, 'max_features': 0.2}]
+grid_search.optimize(training_features, training_targets, parameters_grid)

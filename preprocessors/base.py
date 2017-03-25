@@ -51,4 +51,3 @@ class BasePreprocessor:
 class BaseNaivePreprocessor(BasePreprocessor):
   def reduce_dimensionality(self, samples):
     return samples
-
