@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from functools import reduce
 import time
 import numpy as np
 
@@ -45,16 +44,3 @@ class BaseHyperOptimizer:
     
     print(time.ctime(), training_avg_classification_rate, testing_avg_classification_rate)
     return testing_avg_classification_rate
-
-class GridSearch(BaseHyperOptimizer):
-  def optimize(self, features, targets, parameter_grid):
-    perfs_params = [
-          (self.evaluate_parameters(features, targets, parameters), parameters)
-          for parameters in parameter_grid
-      ]
-
-    best_params = reduce(
-        lambda first, second: first if first[0] > second[0] else second,
-        perfs_params
-      )[1]
-    return best_params
