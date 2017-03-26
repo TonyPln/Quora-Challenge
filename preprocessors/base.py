@@ -4,6 +4,7 @@ import os
 import numpy as np
 
 from sklearn.cross_validation import train_test_split
+import gensim
 
 #%%
 estimators_range = (5,)
@@ -22,7 +23,7 @@ class BasePreprocessor:
     processed_dataset = self.preprocess_dataset(dataset, is_training)
     features, targets = zip(*processed_dataset)
     if not is_training:
-      return np.array(features)
+      return np.array(features), np.array(targets)
     return self.split_dataset(np.array(features), np.array(targets))
     
   def split_dataset(self, features, targets):
@@ -35,7 +36,7 @@ class BasePreprocessor:
       lambda sample: self.transform_sample(sample, is_training),
       axis=1
     ).tolist()
-    return filter(bool, transformed_samples)
+    return list(filter(lambda line: line[0] is not None, transformed_samples)) if is_training else transformed_samples
   
   def transform_sample(self, sample, is_training):
     raise NotImplementedError
@@ -43,11 +44,46 @@ class BasePreprocessor:
   def preprocess_dataset(self, dataset, is_training):
     transformed_samples = self.transform_samples(dataset, is_training)
     return self.reduce_dimensionality(transformed_samples)
- 
+  
   def reduce_dimensionality(self, samples):
     raise NotImplementedError
     
+class BaseWord2VecPreprocessor(BasePreprocessor):
+  def __init__(self, dir):
+    super(BaseWord2VecPreprocessor, self).__init__(dir)
+    model_path = os.path.join(self.dir, 'GoogleNews-vectors-negative300.bin')
+    self.model = gensim.models.KeyedVectors.load_word2vec_format(model_path, binary=True)
 
-class BaseNaivePreprocessor(BasePreprocessor):
+  def try_w2v_representation(self, word):
+    try:
+        if word[-1] == '?':
+            word = word[:-1]
+        return self.model[word]
+    except:
+        return None
+
+  def sentence2vec(self, sentence):
+    words = str(sentence).split(' ')
+    features_list = [
+        self.try_w2v_representation(word)
+        for word in words
+        if self.try_w2v_representation(word) is not None
+    ]
+    return np.mean(features_list, axis=0)
+
+  def transform_sample(self, sample, is_training):
+    question1 = sample.question1
+    question2 = sample.question2
+    
+    in_vec = self.sentence2vec(question1)
+    out_vec = self.sentence2vec(question2)
+    
+    target = sample.is_duplicate if is_training else sample.test_id
+    
+    if in_vec.size < 2 or out_vec.size < 2:
+        return None, target
+    else:
+        return np.hstack([in_vec, out_vec]), target
+      
   def reduce_dimensionality(self, samples):
-    return samples
+    raise NotImplementedError

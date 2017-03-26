@@ -3,10 +3,10 @@ from hyperparameters_optimizers.base import BaseHyperOptimizer
 from functools import reduce
 
 class GridSearch(BaseHyperOptimizer):
-  def optimize(self, features, targets, parameter_grid):
+  def optimize(self, features, targets):
     perfs_params = [
           (self.evaluate_parameters(features, targets, parameters), parameters)
-          for parameters in parameter_grid
+          for parameters in self.parameter_space
       ]
 
     best_params = reduce(
