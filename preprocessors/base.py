@@ -4,6 +4,8 @@ import os
 import numpy as np
 from sklearn.cross_validation import train_test_split
 import gensim
+from helper import chunks
+from functools import reduce
 
 from helper import separate_faulty_entries
 
@@ -40,20 +42,26 @@ class BasePreprocessor:
     raise NotImplementedError
     
   def preprocess_dataset(self, dataset, is_training):
-    transformed_samples = self.transform_samples(dataset, is_training)
-    return self.reduce_dimensionality_wrapper(transformed_samples, is_training)
+    if is_training:
+      transformed_samples = self.transform_samples(dataset, is_training)
+      return self.reduce_dimensionality_wrapper(transformed_samples, is_training)
+    else:
+      chunked_samples = chunks(df=dataset, size=200)
+      reduced_chunks = list(map(
+        lambda chunk: self.reduce_dimensionality(self.transform_samples(chunk, is_training), is_training), 
+        chunked_samples
+      ))
+      return reduce(list.__add__, reduced_chunks)
+
   
   def reduce_dimensionality_wrapper(self, samples, is_training):
-    try:
-      if not is_training:
-        features, ids = zip(*samples)
-        faulty_entries, good_entries = separate_faulty_entries(features, ids)
-        return self.reduce_dimensionality(good_entries) + faulty_entries
-      else:
-        return self.reduce_dimensionality(samples)
-    except TypeError:
-      print(faulty_entries)
-      raise TypeError
+    if not is_training:
+      features, ids = zip(*samples)
+      faulty_entries, good_entries = separate_faulty_entries(features, ids)
+      return self.reduce_dimensionality(good_entries) + faulty_entries
+    else:
+      return self.reduce_dimensionality(samples)
+
 
   def reduce_dimensionality(self, samples):
     raise NotImplementedError

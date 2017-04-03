@@ -20,5 +20,39 @@ model = Model(
   parameter_space=parameter_space
 )
 
-#%%
 model.run(create_submission_file=True)
+
+#%%
+
+#dir='~/Téléchargements'
+#preprocessor = PCAWord2VecPreprocessor(dir)
+#
+##%%
+#train = pd.read_csv(os.path.join(dir, 'train.csv'), nrows=2000)
+#
+##%%
+#
+#preprocessor.preprocess_dataset(train, is_training=True)
+##%%
+#test = pd.read_csv(os.path.join(dir, 'test.csv'), header=0, nrows=200, skiprows=range(1,8613))
+#
+##%%
+#
+#
+#preprocessor.transform_samples(test,False)
+#
+##%%
+#
+#preprocessor.preprocess_dataset(test, is_training=False)
+
+
+
+
+
+#%%
+
+#best_classifier = RandomForest(parameter_space[0])
+#best_classifier.fit(training_features, training_targets)
+#
+#model.compute_submission_dataframe(model.classifier_class)
+
