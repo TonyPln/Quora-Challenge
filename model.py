@@ -2,7 +2,7 @@
 import pandas as pd
 import numpy as np
 import os
-
+from helper import separate_faulty_entries, fill_faulty_results
 
 class Model:
   def __init__(self, preprocessor_class, classifier_class, hyperoptimizer_class, parameter_space, dir='~/Téléchargements'):
@@ -18,25 +18,16 @@ class Model:
     return self.classifier.evaluate(features, targets)
  
   def compute_submission_dataframe(self, classifier):
-    submission_features, ids = self.load_dataset(is_training=False)
+    features, ids = self.load_dataset(is_training=False)
+    faulty_entries, good_entries = separate_faulty_entries(features, ids)
+    faulty_entries_result = fill_faulty_results(faulty_entries)
     
-    test_set = list(zip(submission_features, ids))
-    faulty_entries = list(filter(lambda line: line[0] is None, test_set))
-    good_entries = list(filter(lambda line: line[0] is not None, test_set))
-    
-    faulty_ids = list(map(lambda line: line[1], faulty_entries))
-    faulty_entries_result = pd.DataFrame({
-      'test_id': faulty_ids,
-      'is_duplicate': [0.5] * len(faulty_ids)
-    })
-  
     good_ids = list(map(lambda line: line[1], good_entries))
     good_features = np.array(list(map(lambda line: line[0], good_entries)))
     good_entries_result = pd.DataFrame({
       'test_id': good_ids,
       'is_duplicate': classifier.predict(good_features)[:, 1]
     })
-
     return pd.concat([faulty_entries_result, good_entries_result])
     
   def run(self, create_submission_file=False):
@@ -51,7 +42,7 @@ class Model:
     self.loglosses = {
       'training': training_logloss,
       'validation': validation_logloss,
-      'testing': testing_logloss  
+      'testing': testing_logloss
     }
     
     if create_submission_file:

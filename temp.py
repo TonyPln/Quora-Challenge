@@ -1,26 +1,18 @@
-from preprocessors import NaiveWord2VecPreprocessor
+from preprocessors import PCAWord2VecPreprocessor
 from hyperparameters_optimizers.grid_search import GridSearch
 from classifiers.random_forest_classifier import RandomForest
 from model import Model
+import pandas as pd
+import os
 
-preprocessor_class = NaiveWord2VecPreprocessor
+preprocessor_class = PCAWord2VecPreprocessor
 hyper_opt_class = GridSearch
 classifier_class = RandomForest
 
 parameter_space = [
   {'n_estimators': 30, 'max_features': 0.02},
-  {'n_estimators': 30, 'max_features': 0.04},
-  {'n_estimators': 30, 'max_features': 0.06},
-  {'n_estimators': 30, 'max_features': 0.08},
-  {'n_estimators': 30, 'max_features': 0.10},
-  {'n_estimators': 45, 'max_features': 0.02},
-  {'n_estimators': 45, 'max_features': 0.04},
-  {'n_estimators': 45, 'max_features': 0.06},
-  {'n_estimators': 45, 'max_features': 0.08},
-  {'n_estimators': 45, 'max_features': 0.10},
 ]
 
-#%%
 model = Model(
   preprocessor_class=preprocessor_class,
   hyperoptimizer_class=hyper_opt_class,

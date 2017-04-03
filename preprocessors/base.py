@@ -2,15 +2,13 @@
 import pandas as pd
 import os
 import numpy as np
-
 from sklearn.cross_validation import train_test_split
 import gensim
 
-#%%
-estimators_range = (5,)
+from helper import separate_faulty_entries
+
 np.random.seed(0)
 
-#%%
 class BasePreprocessor:
   def __init__(self, dir):
     self.dir = dir
@@ -43,8 +41,20 @@ class BasePreprocessor:
     
   def preprocess_dataset(self, dataset, is_training):
     transformed_samples = self.transform_samples(dataset, is_training)
-    return self.reduce_dimensionality(transformed_samples)
+    return self.reduce_dimensionality_wrapper(transformed_samples, is_training)
   
+  def reduce_dimensionality_wrapper(self, samples, is_training):
+    try:
+      if not is_training:
+        features, ids = zip(*samples)
+        faulty_entries, good_entries = separate_faulty_entries(features, ids)
+        return self.reduce_dimensionality(good_entries) + faulty_entries
+      else:
+        return self.reduce_dimensionality(samples)
+    except TypeError:
+      print(faulty_entries)
+      raise TypeError
+
   def reduce_dimensionality(self, samples):
     raise NotImplementedError
     
@@ -87,3 +97,6 @@ class BaseWord2VecPreprocessor(BasePreprocessor):
       
   def reduce_dimensionality(self, samples):
     raise NotImplementedError
+
+  def __del__(self):
+    del self.model
