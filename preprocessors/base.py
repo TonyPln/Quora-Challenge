@@ -7,15 +7,15 @@ import gensim
 from helper import chunks
 from functools import reduce
 
-from helper import separate_faulty_entries
+from helper import separate_faulty_entries, working_dir
 
 np.random.seed(0)
 
 class BasePreprocessor:
-  def __init__(self, dir):
-    self.dir = dir
-    self.train_url = os.path.join(dir, 'train.csv')
-    self.test_url = os.path.join(dir, 'test.csv')
+  def __init__(self):
+    self.dir = working_dir
+    self.train_url = os.path.join(working_dir, 'train.csv')
+    self.test_url = os.path.join(working_dir, 'test.csv')
     
   def load_dataset(self, is_training):
     url = self.train_url if is_training else self.test_url
@@ -46,13 +46,21 @@ class BasePreprocessor:
       transformed_samples = self.transform_samples(dataset, is_training)
       return self.reduce_dimensionality_wrapper(transformed_samples, is_training)
     else:
-      chunked_samples = chunks(df=dataset, size=200)
+      chunked_samples = chunks(df=dataset, size=20000)
+      
+#      try:
+#        for chunk
+#        self.reduce_dimensionality_wrapper(self.transform_samples(chunk, is_training), is_training)
+      
+      
+      
+      
       reduced_chunks = list(map(
-        lambda chunk: self.reduce_dimensionality(self.transform_samples(chunk, is_training), is_training), 
+        lambda chunk: self.reduce_dimensionality_wrapper(self.transform_samples(chunk, is_training), is_training), 
         chunked_samples
       ))
       return reduce(list.__add__, reduced_chunks)
-
+      
   
   def reduce_dimensionality_wrapper(self, samples, is_training):
     if not is_training:
@@ -62,13 +70,13 @@ class BasePreprocessor:
     else:
       return self.reduce_dimensionality(samples)
 
-
+        
   def reduce_dimensionality(self, samples):
     raise NotImplementedError
     
 class BaseWord2VecPreprocessor(BasePreprocessor):
-  def __init__(self, dir):
-    super(BaseWord2VecPreprocessor, self).__init__(dir)
+  def __init__(self):
+    super(BaseWord2VecPreprocessor, self).__init__()
     model_path = os.path.join(self.dir, 'GoogleNews-vectors-negative300.bin')
     self.model = gensim.models.KeyedVectors.load_word2vec_format(model_path, binary=True)
 
@@ -105,6 +113,4 @@ class BaseWord2VecPreprocessor(BasePreprocessor):
       
   def reduce_dimensionality(self, samples):
     raise NotImplementedError
-
-  def __del__(self):
-    del self.model
+        

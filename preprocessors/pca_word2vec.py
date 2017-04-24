@@ -4,10 +4,10 @@ from sklearn.decomposition import PCA
 import numpy as np
 
 class PCAWord2VecPreprocessor(BaseWord2VecPreprocessor):
-  def __init__(self, dir):
-    super(PCAWord2VecPreprocessor, self).__init__(dir)
+  def __init__(self):
+    super(PCAWord2VecPreprocessor, self).__init__()
     self.pca = PCA(n_components=50, whiten=True)
-
+    
   def reduce_dimensionality(self, samples, is_training=True):
     features, targets = zip(*samples)
     if is_training:

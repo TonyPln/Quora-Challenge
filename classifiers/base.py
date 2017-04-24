@@ -2,6 +2,7 @@
 from sklearn.metrics import log_loss
 
 class Classifier:
+  name = None
   def fit(self, training_features, training_targets):
     raise NotImplementedError
     

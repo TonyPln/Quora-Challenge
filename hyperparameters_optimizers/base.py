@@ -7,6 +7,7 @@ from sklearn.model_selection import KFold
 
 class BaseHyperOptimizer:
   def __init__(self, classifier_class, parameter_space):
+    self.classifier_name = classifier_class.name
     self.classifier_class = classifier_class
     self.parameter_space = parameter_space
     
