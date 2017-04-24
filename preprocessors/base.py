@@ -6,17 +6,16 @@ from sklearn.cross_validation import train_test_split
 import gensim
 from helper import chunks
 from functools import reduce
-
 from helper import separate_faulty_entries, working_dir
-
 np.random.seed(0)
 
 class BasePreprocessor:
+  """Main class for the data preprocessing model"""
   def __init__(self):
     self.dir = working_dir
     self.train_url = os.path.join(working_dir, 'train.csv')
     self.test_url = os.path.join(working_dir, 'test.csv')
-    
+
   def load_dataset(self, is_training):
     url = self.train_url if is_training else self.test_url
     dataset = pd.read_csv(url)
@@ -25,43 +24,34 @@ class BasePreprocessor:
     if not is_training:
       return np.array(features), np.array(targets)
     return self.split_dataset(np.array(features), np.array(targets))
-    
+
   def split_dataset(self, features, targets):
     training_features, testing_features, training_targets, testing_targets = train_test_split(features, targets, test_size=0.2)
     validation_features, testing_features, validation_targets, testing_targets = train_test_split(testing_features, testing_targets, test_size=0.5)
     return training_features, validation_features, testing_features, training_targets, validation_targets, testing_targets
-  
+
   def transform_samples(self, dataset, is_training):
     transformed_samples = dataset.apply(
       lambda sample: self.transform_sample(sample, is_training),
       axis=1
     ).tolist()
     return list(filter(lambda line: line[0] is not None, transformed_samples)) if is_training else transformed_samples
-  
+
   def transform_sample(self, sample, is_training):
     raise NotImplementedError
-    
+
   def preprocess_dataset(self, dataset, is_training):
     if is_training:
       transformed_samples = self.transform_samples(dataset, is_training)
       return self.reduce_dimensionality_wrapper(transformed_samples, is_training)
     else:
       chunked_samples = chunks(df=dataset, size=20000)
-      
-#      try:
-#        for chunk
-#        self.reduce_dimensionality_wrapper(self.transform_samples(chunk, is_training), is_training)
-      
-      
-      
-      
       reduced_chunks = list(map(
         lambda chunk: self.reduce_dimensionality_wrapper(self.transform_samples(chunk, is_training), is_training), 
         chunked_samples
       ))
       return reduce(list.__add__, reduced_chunks)
-      
-  
+
   def reduce_dimensionality_wrapper(self, samples, is_training):
     if not is_training:
       features, ids = zip(*samples)
@@ -70,10 +60,10 @@ class BasePreprocessor:
     else:
       return self.reduce_dimensionality(samples)
 
-        
   def reduce_dimensionality(self, samples):
     raise NotImplementedError
-    
+
+
 class BaseWord2VecPreprocessor(BasePreprocessor):
   def __init__(self):
     super(BaseWord2VecPreprocessor, self).__init__()
@@ -100,17 +90,16 @@ class BaseWord2VecPreprocessor(BasePreprocessor):
   def transform_sample(self, sample, is_training):
     question1 = sample.question1
     question2 = sample.question2
-    
+
     in_vec = self.sentence2vec(question1)
     out_vec = self.sentence2vec(question2)
-    
+
     target = sample.is_duplicate if is_training else sample.test_id
-    
+
     if in_vec.size < 2 or out_vec.size < 2:
         return None, target
     else:
         return np.hstack([in_vec, out_vec]), target
-      
+
   def reduce_dimensionality(self, samples):
     raise NotImplementedError
-        

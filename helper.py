@@ -1,11 +1,10 @@
 import pandas as pd
 
-
 def separate_faulty_entries(features, ids):
   test_set = list(zip(features, ids))
   faulty_entries = list(filter(lambda line: line[0] is None, test_set))
   good_entries = list(filter(lambda line: line[0] is not None, test_set))
-  
+
   return faulty_entries, good_entries
 
 def fill_faulty_results(faulty_entries):

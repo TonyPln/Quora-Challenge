@@ -1,16 +1,14 @@
 # -*- coding: utf-8 -*-
 import numpy as np
-
 from sklearn.metrics import log_loss
 from sklearn.model_selection import KFold
-
 
 class BaseHyperOptimizer:
   def __init__(self, classifier_class, parameter_space):
     self.classifier_name = classifier_class.name
     self.classifier_class = classifier_class
     self.parameter_space = parameter_space
-    
+
   def evaluate_parameters_on_fold(self, current_fold_indices, features, targets, parameter_set):
     current_training_indices, current_testing_indices = current_fold_indices
     current_training_features = features[current_training_indices]
